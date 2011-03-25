@@ -15,6 +15,8 @@
                    displayName="Source Files"
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
+      <itemPath>FileReader.cpp</itemPath>
+      <itemPath>FileReader.h</itemPath>
       <itemPath>main1.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
