@@ -33,6 +33,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/FileReader.o \
 	${OBJECTDIR}/main1.o
 
 
@@ -59,6 +60,11 @@ LDLIBSOPTIONS=
 dist/Release/GNU-MacOSX/projecto_1: ${OBJECTFILES}
 	${MKDIR} -p dist/Release/GNU-MacOSX
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/projecto_1 ${OBJECTFILES} ${LDLIBSOPTIONS} 
+
+${OBJECTDIR}/FileReader.o: FileReader.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.cc) -O2 -MMD -MP -MF $@.d -o ${OBJECTDIR}/FileReader.o FileReader.cpp
 
 ${OBJECTDIR}/main1.o: main1.cpp 
 	${MKDIR} -p ${OBJECTDIR}
