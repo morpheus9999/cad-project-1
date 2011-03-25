@@ -25,11 +25,10 @@ const char* FileName = "dataset/sm_rules.csv";
 
 int main (int argc, const char * argv[])
 {
-    /*
+    
     FileReader fr;
-    fr.read();
-    return 0;
-    */
+    fr.read("dataset/sm_rules.csv");
+    
     ifstream inFile (FileName);
     string line, item;
 
@@ -49,12 +48,12 @@ int main (int argc, const char * argv[])
 
         newRule = new int[INPUT_SIZE+1];
 
-        cout << "Rule " << rulecount++ << " (" ;
+        //cout << "Rule " << rulecount++ << " (" ;
 
         for (i=0; i<INPUT_SIZE; i++) {
             getline (linestream, item, ',');
             newRule[i] = atoi(item.c_str());
-            cout << " " << atoi(item.c_str());
+            //cout << " " << atoi(item.c_str());
         }
 
         getline (linestream, item, ',');
@@ -63,8 +62,9 @@ int main (int argc, const char * argv[])
         
         rules.push_back(newRule);
 
-        cout << ") Category: " << atoi(item.c_str()) << endl;
+        //cout << ") Category: " << atoi(item.c_str()) << endl;
     }
+    cout << "\nTime took: " << (((double)clock() - s) / CLOCKS_PER_SEC) << endl; 
     return 0;
 }
 

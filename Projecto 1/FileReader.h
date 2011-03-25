@@ -8,13 +8,15 @@
 #ifndef FILEREADER_H
 #define	FILEREADER_H
 
+#include <vector>
+
 class FileReader {
 public:
     FileReader();
     FileReader(const FileReader& orig);
     virtual ~FileReader();
 
-    void read();
+    std::vector<int*>* read(const char*);
 
 private:
 
