@@ -12,7 +12,9 @@
 // TODO : remove useless libraries <algorithm>
 #include <algorithm>
 
+#include "def.h"
 #include "FileHandler.h"
+#include "SMSolution.h"
 
 using namespace std;
 
@@ -37,6 +39,13 @@ bool passesRule(int* input, int* rule) {
 
 int main (int argc, const char * argv[])
 {
+
+#ifdef GRAVE
+    SMSolution sml;
+    sml.execute();
+    return 0;
+#endif
+
     FileHandler fh;
 
     vector<int*>* ruleSet;
