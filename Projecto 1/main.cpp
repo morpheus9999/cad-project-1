@@ -7,125 +7,66 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <fstream>
 #include <time.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <vector>
+
+// TODO : remove useless libraries <algorithm>
 #include <algorithm>
 
-#define INPUT_SIZE 10
-
-#define ATOI(str, result) \
-do{ \
-char *lptr = str; \
-result = 0; \
-while (1) \
-{ \
-if ((*lptr >= '0') && (*lptr <= '9')) \
-{ \
-result *= 10; \
-result += *lptr - '0'; \
-lptr++; \
-} \
-else \
-{ \
-break; \
-} \
-} \
-}while(0)
+#include "FileHandler.h"
 
 using namespace std;
-
-vector<int*> rules;
-
-const char* FileName = "dataset/sm_rules.csv";
-
-bool compArray (int *a,int *b);
-vector<int*>* readFile(const char*, int);
-
-int main (int argc, const char * argv[])
-{
-    
-    readFile(FileName, 2000000);
-    return 0;
-}
 
 inline bool compArray (int *a, int *b) {
     for (int i = 0; i < 10; i++) {
         if (!(a == 0 || b==0) && a[i] != b[i])
             return a[i] < b[i];
     }
-    
+
     return false;
 }
 
-vector<int*>* readFile(const char* FileName, int size) {
-
-    clock_t s = clock();
+bool passesRule(int* input, int* rule) {
     
-    vector<int*>* rules = new vector<int*>();
-    rules->reserve(size);
-
-    int fd;
-    int i, l;
-    char *map;
-    struct stat buffer;
-    int status;
-
-    fd = open(FileName, O_RDONLY);
-    status = fstat(fd, &buffer);
-
-    if (fd == -1) {
-	perror("Error opening file for reading");
-	exit(EXIT_FAILURE);
+    for (int i = 0; i < 10; i++) {
+        if(rule[i] != 0 && rule[i] != input[i])
+            return false;
     }
+    
+    return true;
+}
 
-    map = static_cast<char*>(mmap(NULL, buffer.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0));
+int main (int argc, const char * argv[])
+{
+    FileHandler fh;
 
-    if (map == MAP_FAILED) {
-	close(fd);
-	perror("Error mmapping the file");
-	exit(EXIT_FAILURE);
-    }
+    vector<int*>* ruleSet;
+    ruleSet = fh.readRuleFile("dataset/sm_rules.csv");
 
-    char *last, *cell;
+    vector<int*>* input;
+    input = fh.readInputFile("dataset/sm_input.csv");
 
-    cell = strtok_r(map, ",", &last);
+    vector<int*>::iterator input_it = input->begin();
+    vector<int*>::iterator rule_it;
+    
+    clock_t s = clock();
+    while(input_it < input->end()) {
+        rule_it = ruleSet->begin();
 
-    int* ruleSet = new int[size*11];
-    int ruleIndex = 0, ruleStart;
+        while (rule_it < ruleSet->end()) {
+            if (passesRule(*input_it, *rule_it)) {
 
-    while (cell) {
-        ruleStart = ruleIndex;
+                for (int i = 0; i < 10; i++) {
+                    cout << (*input_it)[i] << ",";
+                }
 
-        ATOI(cell, ruleSet[ruleIndex]);
-        //ruleSet[ruleIndex] = atoi(cell);
-        ruleIndex++;
-
-        for (i = 1; i < 10; i++, ruleIndex++) {
-            //ruleSet[ruleIndex] = atoi(strtok_r(NULL, ",", &last));
-            cell = strtok_r(NULL, ",", &last);
-            ATOI(cell, ruleSet[ruleIndex]);
+                cout << (*rule_it)[RULE_SIZE - 1] << endl;
+            }
+            rule_it++;
         }
         
-        //ruleSet[ruleIndex] = atoi(strtok_r(NULL, "\n", &last));
-        cell = strtok_r(NULL, "\n", &last);
-        ATOI(cell, ruleSet[ruleIndex]);
-        rules->push_back(&ruleSet[ruleStart]);
-        ruleIndex++;
-        
-        cell = strtok_r(NULL, ",", &last);
+        input_it++;
     }
-
-    close(fd);
-    munmap(map, sizeof(map));
-
-    sort(rules->begin(), rules->end(), compArray);
-
-    cout << "\nTime took: " << (((double)clock() - s) / CLOCKS_PER_SEC) << endl;
+    cout << "\nSearch took: " << (((double)clock() - s) / CLOCKS_PER_SEC) << endl;
+    return 0;
 }
+
