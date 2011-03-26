@@ -33,8 +33,7 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/FileReader.o \
-	${OBJECTDIR}/main1.o
+	${OBJECTDIR}/main.o
 
 
 # C Compiler Flags
@@ -61,15 +60,10 @@ dist/Debug/GNU-MacOSX/projecto_1: ${OBJECTFILES}
 	${MKDIR} -p dist/Debug/GNU-MacOSX
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/projecto_1 ${OBJECTFILES} ${LDLIBSOPTIONS} 
 
-${OBJECTDIR}/FileReader.o: FileReader.cpp 
+${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/FileReader.o FileReader.cpp
-
-${OBJECTDIR}/main1.o: main1.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/main1.o main1.cpp
+	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 # Subprojects
 .build-subprojects:
