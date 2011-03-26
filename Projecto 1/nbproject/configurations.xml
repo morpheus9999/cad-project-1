@@ -16,6 +16,9 @@
                    projectFiles="true"
                    kind="SOURCE_LOGICAL_FOLDER">
       <itemPath>FileHandler.cpp</itemPath>
+      <itemPath>FileHandler.h</itemPath>
+      <itemPath>SMSolution.cpp</itemPath>
+      <itemPath>def.h</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
