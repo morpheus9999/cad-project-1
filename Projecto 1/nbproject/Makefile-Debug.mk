@@ -34,7 +34,8 @@ OBJECTDIR=build/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
-	${OBJECTDIR}/FileHandler.o
+	${OBJECTDIR}/FileHandler.o \
+	${OBJECTDIR}/SMSolution.o
 
 
 # C Compiler Flags
@@ -64,12 +65,17 @@ dist/Debug/GNU-MacOSX/projecto_1: ${OBJECTFILES}
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -Wall -MMD -MP -MF $@.d -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/FileHandler.o: FileHandler.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} $@.d
-	$(COMPILE.cc) -g -MMD -MP -MF $@.d -o ${OBJECTDIR}/FileHandler.o FileHandler.cpp
+	$(COMPILE.cc) -g -Wall -MMD -MP -MF $@.d -o ${OBJECTDIR}/FileHandler.o FileHandler.cpp
+
+${OBJECTDIR}/SMSolution.o: SMSolution.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} $@.d
+	$(COMPILE.cc) -g -Wall -MMD -MP -MF $@.d -o ${OBJECTDIR}/SMSolution.o SMSolution.cpp
 
 # Subprojects
 .build-subprojects:
