@@ -15,8 +15,8 @@
 #define NUM_CLASS 100
 
 struct StateNode {
-    unsigned short index;
-    unsigned short value;
+    cell_value index;
+    cell_value value;
 
     StateNode* next;
 };
@@ -25,17 +25,6 @@ struct StateCompare {
     bool operator() (const StateNode* lhs, const StateNode* rhs) const {
         return lhs->value < rhs->value;
     }
-};
-
-struct cellCmp {
-  bool operator() (int *a, int *b) { 
-      for (int i = 0; i < 10; i++) {
-        if (!(a == 0 || b == 0) && a[i] != b[i])
-            return a[i] < b[i];
-        }
-
-    return false;
-  }
 };
 
 class SMSolution {
@@ -51,9 +40,9 @@ private:
     StateNode finalState[NUM_CLASS];
     multiset<StateNode*, StateCompare> startIndex[INPUT_SIZE];
 
-    void executeSM(StateNode* state, int* input);
+    void executeSM(StateNode* state, cell_array input);
     void printSM(StateNode* state, int d);
-    void buildStateMachine(vector<int*>* ruleSet);
+    void buildStateMachine(cell_vector* ruleSet);
 };
 
 #endif	/* SMSOLUTION_H */

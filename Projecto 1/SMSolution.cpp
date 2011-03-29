@@ -22,10 +22,10 @@ SMSolution::~SMSolution() {
 }
 
 void SMSolution::execute() {
-    vector<int*>* ruleSet;
+    cell_vector* ruleSet;
     ruleSet = fileHandler.readRuleFile("dataset/sm_rules.csv");
 
-    vector<int*>* input;
+    cell_vector* input;
     input = fileHandler.readInputFile("dataset/THE_PROBLEM/trans_day_1.csv");
 //    input = fileHandler.readInputFile("dataset/sm_input2.csv");
 
@@ -47,7 +47,7 @@ void SMSolution::execute() {
     /********************************** CASO 00000000000 !!!! !!! !!!!! !   *************************/
 
 
-    vector<int*>::iterator input_it = input->begin();
+    cell_vector::iterator input_it = input->begin();
 
     multiset<StateNode*, StateCompare>::iterator it;
     pair<multiset<StateNode*, StateCompare>::iterator,multiset<StateNode*, StateCompare>::iterator> ret;
@@ -78,7 +78,7 @@ void SMSolution::execute() {
     fileHandler.manageOutputOf(input);
 }
 
-void SMSolution::executeSM(StateNode *state, int* input) {
+void SMSolution::executeSM(StateNode *state, cell_array input) {
     
     if (state->next != NULL) {
         if (state->value == input[state->index]) {
@@ -102,9 +102,9 @@ void SMSolution::printSM(StateNode* sm, int d) {
 
 }
 
-void SMSolution::buildStateMachine(vector<int*>* ruleSet) {
+void SMSolution::buildStateMachine(cell_vector* ruleSet) {
 
-    vector<int*>::iterator rule_it = ruleSet->begin();
+    cell_vector::iterator rule_it = ruleSet->begin();
     // 980000,744000,744000,744000,720000,720000,716000,712000,712000,708000,
     // 3.75
 
