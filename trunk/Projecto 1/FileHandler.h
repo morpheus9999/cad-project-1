@@ -9,12 +9,16 @@
 #define	FILEHANDLER_H
 
 #include <vector>
+#include <list>
+#include <algorithm>
 
 #define RULE_SIZE   11
 #define INPUT_SIZE  10
 
 #define RULE_NUM    2000000
-#define INPUT_NUM   4
+#define INPUT_NUM   1000000
+
+#define MAX_NUMBER  10000
 
 #define ATOI(str, result) \
 do{ \
@@ -41,6 +45,8 @@ struct LoadedFile {
     int* memoryBlock;
     vector<int*>* workVector;
     unsigned int size;
+
+    list< pair<int*, short> > output;
 };
 
 class FileHandler {
@@ -52,13 +58,18 @@ public:
     vector<int*>* readRuleFile(const char* FileName);
     vector<int*>* readInputFile(const char* FileName);
     
+    void manageOutputOf(vector<int*>* workPointer);
+
+    void addOutput(int* input, short classf);
+
     unsigned long int getMemoryUsed();
 
 private:
-    vector<int*>* readFile(const char* FileName, int row_size, int vector_size, int number_size);
+    LoadedFile* readFile(const char* FileName, int row_size, int vector_size, int number_size);
 
     /* Atributes */
-    vector<LoadedFile*> memoryHandler;
+    LoadedFile* ruleHandler;
+    vector<LoadedFile*> inputHandler;
 };
 
 #endif	/* FILEHANDLER_H */

@@ -18,6 +18,7 @@
       <itemPath>FileHandler.cpp</itemPath>
       <itemPath>FileHandler.h</itemPath>
       <itemPath>SMSolution.cpp</itemPath>
+      <itemPath>SMSolution.h</itemPath>
       <itemPath>def.h</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
@@ -42,6 +43,9 @@
         <platform>4</platform>
       </toolsSet>
       <compileType>
+        <ccTool>
+          <warningLevel>2</warningLevel>
+        </ccTool>
       </compileType>
     </conf>
     <conf name="Release" type="1">

@@ -10,13 +10,32 @@
 
 #include "FileHandler.h"
 
-struct StateMachine {
-    short value;
-    short index;
-    
-    bool isFinal; //When accepted next state value atribute holds classification
+#include <set>
 
-    vector<StateMachine> nextState;
+#define NUM_CLASS 100
+
+struct StateNode {
+    unsigned short index;
+    unsigned short value;
+
+    StateNode* next;
+};
+
+struct StateCompare {
+    bool operator() (const StateNode* lhs, const StateNode* rhs) const {
+        return lhs->value < rhs->value;
+    }
+};
+
+struct cellCmp {
+  bool operator() (int *a, int *b) { 
+      for (int i = 0; i < 10; i++) {
+        if (!(a == 0 || b == 0) && a[i] != b[i])
+            return a[i] < b[i];
+        }
+
+    return false;
+  }
 };
 
 class SMSolution {
@@ -28,7 +47,13 @@ public:
     void execute();
 
 private:
+    FileHandler fileHandler;
+    StateNode finalState[NUM_CLASS];
+    multiset<StateNode*, StateCompare> startIndex[INPUT_SIZE];
 
+    void executeSM(StateNode* state, int* input);
+    void printSM(StateNode* state, int d);
+    void buildStateMachine(vector<int*>* ruleSet);
 };
 
 #endif	/* SMSOLUTION_H */
