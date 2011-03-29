@@ -22,18 +22,18 @@ FileHandler::FileHandler() {
 FileHandler::FileHandler(const FileHandler& orig) {
 }
 
-void FileHandler::addOutput(int* input, short classf) {
-    inputHandler[0]->output.push_back(pair<int*, short>(input, classf));
+void FileHandler::addOutput(cell_array input, cell_value classf) {
+    inputHandler[0]->output.push_back(pair<cell_array, cell_value>(input, classf));
 }
 
-vector<int*>* FileHandler::readRuleFile(const char* FileName) {
+cell_vector* FileHandler::readRuleFile(const char* FileName) {
     LoadedFile* newRule = readFile(FileName, RULE_SIZE, RULE_NUM, RULE_NUM*RULE_SIZE);
     ruleHandler = newRule;
 
     return newRule->workVector;
 }
 
-vector<int*>* FileHandler::readInputFile(const char* FileName) {
+cell_vector* FileHandler::readInputFile(const char* FileName) {
     LoadedFile* newInput = readFile(FileName, INPUT_SIZE, INPUT_NUM, INPUT_NUM*INPUT_SIZE);
     inputHandler.push_back(newInput);
 
@@ -46,29 +46,29 @@ unsigned long int FileHandler::getMemoryUsed() {
     unsigned long int totalSize = 0;
 
     while(it < inputHandler.end()) {
-        totalSize += (*it)->size * sizeof(int);
-        totalSize += (*it)->workVector->size() * sizeof(int*);
-        totalSize += (*it)->output.size() * sizeof( pair<int*, short> );
+        totalSize += (*it)->size * sizeof(cell_value);
+        totalSize += (*it)->workVector->size() * sizeof(cell_value*);
+        totalSize += (*it)->output.size() * sizeof( pair<cell_array, cell_value> );
         totalSize += sizeof(unsigned int);
 
         it++;
     }
 
     if (ruleHandler != NULL) {
-        totalSize += ruleHandler->size * sizeof (int);
-        totalSize += ruleHandler->workVector->size() * sizeof (int*);
-        totalSize += ruleHandler->output.size() * sizeof ( pair<int*, short>);
+        totalSize += ruleHandler->size * sizeof (cell_value);
+        totalSize += ruleHandler->workVector->size() * sizeof (cell_array);
+        totalSize += ruleHandler->output.size() * sizeof ( pair<int*, cell_value>);
         totalSize += sizeof (unsigned int);
     }
 
     return totalSize;
 }
 
-void FileHandler::manageOutputOf(vector<int*>* workPointer) {
+void FileHandler::manageOutputOf(cell_vector* workPointer) {
     if (inputHandler[0]->workVector == workPointer) {
 
         char  lookupTable[MAX_NUMBER+1][7];
-        short lookupSizes[MAX_NUMBER+1];
+        cell_value lookupSizes[MAX_NUMBER+1];
 
         clock_t s = clock();
 
@@ -119,8 +119,8 @@ void FileHandler::manageOutputOf(vector<int*>* workPointer) {
         }
 
         int idx=0;
-        int* t_id;
-        list< pair<int*, short> >::iterator it = file->output.begin();
+        cell_array t_id;
+        list< pair<cell_array, cell_value> >::iterator it = file->output.begin();
         
         cout << "Extra memory reserved: " << fileSize/(float) (1048576) << " MB\n";
 
@@ -184,7 +184,7 @@ LoadedFile* FileHandler::readFile(const char* FileName, int row_size, int vector
 
     clock_t s = clock();
 
-    vector<int*>* rules = new vector<int*>();
+    cell_vector* rules = new cell_vector();
     rules->reserve(vector_size);
 
     int fd;
@@ -213,7 +213,7 @@ LoadedFile* FileHandler::readFile(const char* FileName, int row_size, int vector
 
     cell = strtok_r(map, ",", &last);
 
-    int *array = new int[number_size];
+    cell_array array = new cell_value[number_size];
     int ruleIndex = 0, ruleStart;
 
     while (cell) {

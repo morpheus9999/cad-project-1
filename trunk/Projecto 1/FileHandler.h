@@ -41,12 +41,16 @@ break; \
 
 using namespace std;
 
+typedef short*  cell_array;
+typedef short   cell_value;
+typedef vector<short*> cell_vector;
+
 struct LoadedFile {
-    int* memoryBlock;
-    vector<int*>* workVector;
+    cell_array memoryBlock;
+    cell_vector* workVector;
     unsigned int size;
 
-    list< pair<int*, short> > output;
+    list< pair<cell_array, cell_value> > output;
 };
 
 class FileHandler {
@@ -55,12 +59,12 @@ public:
     FileHandler(const FileHandler& orig);
     virtual ~FileHandler();
 
-    vector<int*>* readRuleFile(const char* FileName);
-    vector<int*>* readInputFile(const char* FileName);
+    cell_vector* readRuleFile(const char* FileName);
+    cell_vector* readInputFile(const char* FileName);
     
-    void manageOutputOf(vector<int*>* workPointer);
+    void manageOutputOf(cell_vector* workPointer);
 
-    void addOutput(int* input, short classf);
+    void addOutput(cell_array input, cell_value classf);
 
     unsigned long int getMemoryUsed();
 

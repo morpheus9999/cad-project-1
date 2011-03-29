@@ -18,7 +18,7 @@
 
 using namespace std;
 
-inline bool compArray (int *a, int *b) {
+inline bool compArray (cell_array a, cell_array b) {
     for (int i = 0; i < 10; i++) {
         if (!(a == 0 || b==0) && a[i] != b[i])
             return a[i] < b[i];
@@ -27,7 +27,7 @@ inline bool compArray (int *a, int *b) {
     return false;
 }
 
-bool passesRule(int* input, int* rule) {
+bool passesRule(cell_array input, cell_array rule) {
     
     for (int i = 0; i < 10; i++) {
         if(rule[i] != 0 && rule[i] != input[i])
@@ -48,14 +48,14 @@ int main (int argc, const char * argv[])
 
     FileHandler fh;
 
-    vector<int*>* ruleSet;
+    cell_vector* ruleSet;
     ruleSet = fh.readRuleFile("dataset/sm_rules.csv");
 
-    vector<int*>* input;
+    cell_vector* input;
     input = fh.readInputFile("dataset/sm_input.csv");
 
-    vector<int*>::iterator input_it = input->begin();
-    vector<int*>::iterator rule_it;
+    cell_vector::iterator input_it = input->begin();
+    cell_vector::iterator rule_it;
     
     clock_t s = clock();
     while(input_it < input->end()) {
