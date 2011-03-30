@@ -18,26 +18,9 @@
 #define RULE_NUM    2000000
 #define INPUT_NUM   1000000
 
-#define MAX_NUMBER  10000
+#define NUM_RANGE   10000
 
-#define ATOI(str, result) \
-do{ \
-char *lptr = str; \
-result = 0; \
-while (1) \
-{ \
-if ((*lptr >= '0') && (*lptr <= '9')) \
-{ \
-result *= 10; \
-result += *lptr - '0'; \
-lptr++; \
-} \
-else \
-{ \
-break; \
-} \
-} \
-}while(0)
+#define NUM_THREADS 2
 
 using namespace std;
 
@@ -49,8 +32,8 @@ struct LoadedFile {
     cell_array memoryBlock;
     cell_vector* workVector;
     unsigned int size;
-
-    list< pair<cell_array, cell_value> > output;
+    
+    list< pair<cell_array, cell_value> > output[NUM_THREADS];
 };
 
 class FileHandler {
@@ -64,14 +47,23 @@ public:
     
     void manageOutputOf(cell_vector* workPointer);
 
-    void addOutput(cell_array input, cell_value classf);
+    void addOutput(cell_array input, cell_value classf, int thread_id);
 
     unsigned long int getMemoryUsed();
 
 private:
+    cell_value c_nextToken(char delim);
+    
     LoadedFile* readFile(const char* FileName, int row_size, int vector_size, int number_size);
 
     /* Atributes */
+    char*       tokenPtr;
+
+    cell_value  cellLookupTable[NUM_RANGE+1][7];
+
+    char        charLookupTable[NUM_RANGE+1][7];
+    cell_value  charLookupSizes[NUM_RANGE+1];
+
     LoadedFile* ruleHandler;
     vector<LoadedFile*> inputHandler;
 };
