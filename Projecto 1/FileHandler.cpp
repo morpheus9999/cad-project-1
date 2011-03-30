@@ -17,13 +17,22 @@
 
 FileHandler::FileHandler() {
     ruleHandler = NULL;
+    for (int i = 0; i < NUM_RANGE; i += 5) {
+        charLookupSizes[i] = sprintf(charLookupTable[i], "%d", i);
+        charLookupSizes[i + 1] = sprintf(charLookupTable[i + 1], "%d", i + 1);
+        charLookupSizes[i + 2] = sprintf(charLookupTable[i + 2], "%d", i + 2);
+        charLookupSizes[i + 3] = sprintf(charLookupTable[i + 3], "%d", i + 3);
+        charLookupSizes[i + 4] = sprintf(charLookupTable[i + 4], "%d", i + 4);
+    }
+
+    charLookupSizes[NUM_RANGE] = sprintf(charLookupTable[NUM_RANGE], "%d", NUM_RANGE);
 }
 
 FileHandler::FileHandler(const FileHandler& orig) {
 }
 
-void FileHandler::addOutput(cell_array input, cell_value classf) {
-    inputHandler[0]->output.push_back(pair<cell_array, cell_value>(input, classf));
+void FileHandler::addOutput(cell_array input, cell_value classf, int thread_id) {
+    inputHandler[0]->output[thread_id].push_back(pair<cell_array, cell_value>(input, classf));
 }
 
 cell_vector* FileHandler::readRuleFile(const char* FileName) {
@@ -48,8 +57,10 @@ unsigned long int FileHandler::getMemoryUsed() {
     while(it < inputHandler.end()) {
         totalSize += (*it)->size * sizeof(cell_value);
         totalSize += (*it)->workVector->size() * sizeof(cell_value*);
-        totalSize += (*it)->output.size() * sizeof( pair<cell_array, cell_value> );
         totalSize += sizeof(unsigned int);
+
+        for(int i=0; i<NUM_THREADS; i++)
+            totalSize += (*it)->output[i].size() * sizeof( pair<cell_array, cell_value> );
 
         it++;
     }
@@ -57,7 +68,6 @@ unsigned long int FileHandler::getMemoryUsed() {
     if (ruleHandler != NULL) {
         totalSize += ruleHandler->size * sizeof (cell_value);
         totalSize += ruleHandler->workVector->size() * sizeof (cell_array);
-        totalSize += ruleHandler->output.size() * sizeof ( pair<int*, cell_value>);
         totalSize += sizeof (unsigned int);
     }
 
@@ -66,28 +76,20 @@ unsigned long int FileHandler::getMemoryUsed() {
 
 void FileHandler::manageOutputOf(cell_vector* workPointer) {
     if (inputHandler[0]->workVector == workPointer) {
-
-        char  lookupTable[MAX_NUMBER+1][7];
-        cell_value lookupSizes[MAX_NUMBER+1];
-
+        
         clock_t s = clock();
-
-        for(int i=0; i<MAX_NUMBER; i+=5) {
-            lookupSizes[i] = sprintf(lookupTable[i], "%d", i);
-            lookupSizes[i+1] = sprintf(lookupTable[i+1], "%d", i+1);
-            lookupSizes[i+2] = sprintf(lookupTable[i+2], "%d", i+2);
-            lookupSizes[i+3] = sprintf(lookupTable[i+3], "%d", i+3);
-            lookupSizes[i+4] = sprintf(lookupTable[i+4], "%d", i+4);
-        }
-
-        lookupSizes[MAX_NUMBER] = sprintf(lookupTable[MAX_NUMBER], "%d", MAX_NUMBER);
 
         LoadedFile* file = inputHandler[0];
         
         int fd, result;
         char *map;
 
-        int fileSize = file->output.size() * RULE_SIZE * 6 * sizeof(char);
+        int fileSize;
+
+        for(int i=0; i<NUM_THREADS; i++)
+            fileSize += file->output[i].size();
+
+        fileSize *= RULE_SIZE * 6 * sizeof(char);
 
         fd = open("dataSet/testData.csv", O_RDWR | O_CREAT, (mode_t)0600);
 
@@ -120,64 +122,90 @@ void FileHandler::manageOutputOf(cell_vector* workPointer) {
 
         int idx=0;
         cell_array t_id;
-        list< pair<cell_array, cell_value> >::iterator it = file->output.begin();
+        list< pair<cell_array, cell_value> >::iterator it;
         
         cout << "Extra memory reserved: " << fileSize/(float) (1048576) << " MB\n";
 
-        while (it != file->output.end()) {
-
-            t_id = &((*it).first[0]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[1]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[2]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[3]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[4]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[5]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[6]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[7]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[8]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            t_id = &((*it).first[9]);
-            memcpy ( &map[idx], lookupTable[*t_id], lookupSizes[*t_id] );
-            idx += lookupSizes[*t_id];
-            map[idx++] = ',';
-            memcpy ( &map[idx], lookupTable[(*it).second], lookupSizes[(*it).second] );
-            idx += lookupSizes[(*it).second];
-            map[idx++] = '\n';
-            
-            it++;
+        for (int i = 0; i < NUM_THREADS; i++) {
+            for (it = file->output[i].begin(); it != file->output[i].end(); it++) {
+                t_id = &((*it).first[0]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[1]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[2]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[3]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[4]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[5]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[6]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[7]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[8]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                t_id = &((*it).first[9]);
+                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
+                idx += charLookupSizes[*t_id];
+                map[idx++] = ',';
+                memcpy(&map[idx], charLookupTable[(*it).second], charLookupSizes[(*it).second]);
+                idx += charLookupSizes[(*it).second];
+                map[idx++] = '\n';
+            }
         }
+        
         map[idx] = '\0';
         close(fd);
         munmap(map, sizeof (map));
 
         cout << "\nWrite took: " << (((double) clock() - s) / CLOCKS_PER_SEC) << endl;
     }
+}
+
+cell_value FileHandler::c_nextToken(char delim) {
+
+    cell_value result=0;
+    char* lptr = tokenPtr;
+
+    for(; *lptr != '\0'; lptr++) {
+
+        if(*lptr == delim) {
+            *lptr = '\0';
+            tokenPtr = ++lptr;
+            
+            return result;
+        }
+
+        result *= 10;
+        result += *lptr - '0';
+    }
+
+    if (result>0) {
+        tokenPtr = lptr;
+        return result;
+    }
+    
+    return -1;
 }
 
 LoadedFile* FileHandler::readFile(const char* FileName, int row_size, int vector_size, int number_size) {
@@ -188,7 +216,6 @@ LoadedFile* FileHandler::readFile(const char* FileName, int row_size, int vector
     rules->reserve(vector_size);
 
     int fd;
-    int i;
     char *map;
     struct stat buffer;
     int status;
@@ -208,38 +235,36 @@ LoadedFile* FileHandler::readFile(const char* FileName, int row_size, int vector
 	perror("Error mmapping the file");
 	exit(EXIT_FAILURE);
     }
-
-    char *last, *cell;
-
-    cell = strtok_r(map, ",", &last);
-
+    
+    tokenPtr = map;
+    cell_value value = c_nextToken(',');
+    
     cell_array array = new cell_value[number_size];
     int ruleIndex = 0, ruleStart;
 
-    while (cell) {
+    while (value>=0) {
         ruleStart = ruleIndex;
 
-        ATOI(cell, array[ruleIndex]);
-        //ruleSet[ruleIndex] = atoi(cell);
-        //cout << (*array)[ruleIndex] << " ";
-        ruleIndex++;
+        array[ruleIndex++] = value;
+        array[ruleIndex++] = c_nextToken(',');
+        array[ruleIndex++] = c_nextToken(',');
+        array[ruleIndex++] = c_nextToken(',');
+        array[ruleIndex++] = c_nextToken(',');
+        array[ruleIndex++] = c_nextToken(',');
+        array[ruleIndex++] = c_nextToken(',');
+        array[ruleIndex++] = c_nextToken(',');
+        array[ruleIndex++] = c_nextToken(',');
 
-        for (i = 1; i < (row_size-1); i++, ruleIndex++) {
-            //ruleSet[ruleIndex] = atoi(strtok_r(NULL, ",", &last));
-            cell = strtok_r(NULL, ",", &last);
-            ATOI(cell, array[ruleIndex]);
-            //cout << (*array)[ruleIndex] << " ";
+        if(row_size == RULE_SIZE) {
+            array[ruleIndex++] = c_nextToken(',');
+            array[ruleIndex++] = c_nextToken('\n');
+        }else {
+            array[ruleIndex++] = c_nextToken('\n');
         }
 
-        //ruleSet[ruleIndex] = atoi(strtok_r(NULL, "\n", &last));
-        cell = strtok_r(NULL, "\n", &last);
-        ATOI(cell, array[ruleIndex]);
-        //cout << (*array)[ruleIndex] << endl;
-
         rules->push_back(&array[ruleStart]);
-        ruleIndex++;
 
-        cell = strtok_r(NULL, ",", &last);
+        value = c_nextToken(',');
     }
 
     close(fd);

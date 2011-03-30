@@ -10,8 +10,6 @@
 
 #include "FileHandler.h"
 
-#include <set>
-
 #define NUM_CLASS 100
 
 struct StateNode {
@@ -27,6 +25,8 @@ struct StateCompare {
     }
 };
 
+void* InitiateThread(void* p);
+
 class SMSolution {
 public:
     SMSolution();
@@ -34,13 +34,24 @@ public:
     virtual ~SMSolution();
 
     void execute();
+    void work();
+
+    void addZeroRuleOutput(cell_array input);
 
 private:
+    int work_ID;
+    pthread_mutex_t mutex_ID;
+
+    bool hasZeroRule;
+    cell_value zeroClass;
+    StateCompare compareObj;
+
+    cell_vector* inputSet;
+
     FileHandler fileHandler;
     StateNode finalState[NUM_CLASS];
-    multiset<StateNode*, StateCompare> startIndex[INPUT_SIZE];
-
-    void executeSM(StateNode* state, cell_array input);
+    vector<StateNode*> startIndex[INPUT_SIZE];
+    
     void printSM(StateNode* state, int d);
     void buildStateMachine(cell_vector* ruleSet);
 };
