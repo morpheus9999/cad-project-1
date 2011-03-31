@@ -34,7 +34,8 @@ public:
     virtual ~SMSolution();
 
     void execute();
-    void work();
+    void thread_work();
+    void openMP_work();
 
     void addZeroRuleOutput(cell_array input);
 

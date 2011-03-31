@@ -20,6 +20,11 @@
 
 #define NUM_RANGE   10000
 
+//#define SERIAL
+#define PTHREADS
+//#define OPENMP
+
+
 #define NUM_THREADS 2
 
 using namespace std;
@@ -47,7 +52,7 @@ public:
     
     void manageOutputOf(cell_vector* workPointer);
 
-    void addOutput(cell_array input, cell_value classf, int thread_id);
+    void addOutput(cell_array input, cell_value classf, int thread_id=0);
 
     unsigned long int getMemoryUsed();
 
@@ -59,10 +64,8 @@ private:
     /* Atributes */
     char*       tokenPtr;
 
-    cell_value  cellLookupTable[NUM_RANGE+1][7];
-
-    char        charLookupTable[NUM_RANGE+1][7];
-    cell_value  charLookupSizes[NUM_RANGE+1];
+    char        lookupTable[NUM_RANGE+1][7];
+    cell_value  lookupSizes[NUM_RANGE+1];
 
     LoadedFile* ruleHandler;
     vector<LoadedFile*> inputHandler;

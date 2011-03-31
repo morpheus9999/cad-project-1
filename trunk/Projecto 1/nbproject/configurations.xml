@@ -44,13 +44,10 @@
       </toolsSet>
       <compileType>
         <ccTool>
+          <commandlineTool>g++</commandlineTool>
+          <commandLine>-fopenmp -pthread</commandLine>
           <warningLevel>2</warningLevel>
         </ccTool>
-        <linkerTool>
-          <linkerLibItems>
-            <linkerOptionItem>-lpthread</linkerOptionItem>
-          </linkerLibItems>
-        </linkerTool>
       </compileType>
     </conf>
     <conf name="Release" type="1">

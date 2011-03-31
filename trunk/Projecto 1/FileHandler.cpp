@@ -18,14 +18,14 @@
 FileHandler::FileHandler() {
     ruleHandler = NULL;
     for (int i = 0; i < NUM_RANGE; i += 5) {
-        charLookupSizes[i] = sprintf(charLookupTable[i], "%d", i);
-        charLookupSizes[i + 1] = sprintf(charLookupTable[i + 1], "%d", i + 1);
-        charLookupSizes[i + 2] = sprintf(charLookupTable[i + 2], "%d", i + 2);
-        charLookupSizes[i + 3] = sprintf(charLookupTable[i + 3], "%d", i + 3);
-        charLookupSizes[i + 4] = sprintf(charLookupTable[i + 4], "%d", i + 4);
+        lookupSizes[i] = sprintf(lookupTable[i], "%d", i);
+        lookupSizes[i + 1] = sprintf(lookupTable[i + 1], "%d", i + 1);
+        lookupSizes[i + 2] = sprintf(lookupTable[i + 2], "%d", i + 2);
+        lookupSizes[i + 3] = sprintf(lookupTable[i + 3], "%d", i + 3);
+        lookupSizes[i + 4] = sprintf(lookupTable[i + 4], "%d", i + 4);
     }
 
-    charLookupSizes[NUM_RANGE] = sprintf(charLookupTable[NUM_RANGE], "%d", NUM_RANGE);
+    lookupSizes[NUM_RANGE] = sprintf(lookupTable[NUM_RANGE], "%d", NUM_RANGE);
 }
 
 FileHandler::FileHandler(const FileHandler& orig) {
@@ -84,11 +84,20 @@ void FileHandler::manageOutputOf(cell_vector* workPointer) {
         int fd, result;
         char *map;
 
-        int fileSize;
+        int fileSize=0;
 
-        for(int i=0; i<NUM_THREADS; i++)
+#ifdef SERIAL
+        fileSize = file->output[0].size();
+        printf("Found %d outputs\n", fileSize);
+#else
+        cout << endl;
+        for(int i=0; i<NUM_THREADS; i++) {
             fileSize += file->output[i].size();
-
+            printf("Thread %d added %d outputs\n", i, (int) file->output[i].size());
+        }
+        cout << endl;
+#endif
+        
         fileSize *= RULE_SIZE * 6 * sizeof(char);
 
         fd = open("dataSet/testData.csv", O_RDWR | O_CREAT, (mode_t)0600);
@@ -126,53 +135,59 @@ void FileHandler::manageOutputOf(cell_vector* workPointer) {
         
         cout << "Extra memory reserved: " << fileSize/(float) (1048576) << " MB\n";
 
+#ifdef SERIAL
+        int i=0;
+#else
         for (int i = 0; i < NUM_THREADS; i++) {
+#endif
             for (it = file->output[i].begin(); it != file->output[i].end(); it++) {
                 t_id = &((*it).first[0]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[1]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[2]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[3]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[4]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[5]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[6]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[7]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[8]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
                 t_id = &((*it).first[9]);
-                memcpy(&map[idx], charLookupTable[*t_id], charLookupSizes[*t_id]);
-                idx += charLookupSizes[*t_id];
+                memcpy(&map[idx], lookupTable[*t_id], lookupSizes[*t_id]);
+                idx += lookupSizes[*t_id];
                 map[idx++] = ',';
-                memcpy(&map[idx], charLookupTable[(*it).second], charLookupSizes[(*it).second]);
-                idx += charLookupSizes[(*it).second];
+                memcpy(&map[idx], lookupTable[(*it).second], lookupSizes[(*it).second]);
+                idx += lookupSizes[(*it).second];
                 map[idx++] = '\n';
             }
+#ifndef SERIAL
         }
+#endif
         
         map[idx] = '\0';
         close(fd);
