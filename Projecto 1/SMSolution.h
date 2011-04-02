@@ -9,6 +9,7 @@
 #define	SMSOLUTION_H
 
 #include "FileHandler.h"
+#include <map>
 
 #define NUM_CLASS 100
 
@@ -25,6 +26,10 @@ struct StateCompare {
     }
 };
 
+struct ContainFirst {
+    vector<StateNode*> next[INPUT_SIZE];
+};
+
 void* InitiateThread(void* p);
 
 class SMSolution {
@@ -35,7 +40,7 @@ public:
 
     void execute();
     void thread_work();
-    void openMP_work();
+    void openMP_work(int id);
 
     void addZeroRuleOutput(cell_array input);
 
@@ -52,6 +57,8 @@ private:
     FileHandler fileHandler;
     StateNode finalState[NUM_CLASS];
     vector<StateNode*> startIndex[INPUT_SIZE];
+    
+    map< cell_value, ContainFirst* > mappedIndexes[INPUT_SIZE];
     
     void printSM(StateNode* state, int d);
     void buildStateMachine(cell_vector* ruleSet);
