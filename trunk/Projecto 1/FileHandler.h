@@ -20,12 +20,12 @@
 
 #define NUM_RANGE   10000
 
-//#define SERIAL
-#define PTHREADS
+#define SERIAL
+//#define PTHREADS
 //#define OPENMP
 
 
-#define NUM_THREADS 2
+#define NUM_THREADS 8
 
 using namespace std;
 
