@@ -13,6 +13,8 @@
 
 #define NUM_CLASS 100
 
+typedef short level;
+
 struct StateNode {
     cell_value index;
     cell_value value;
@@ -27,7 +29,7 @@ struct StateCompare {
 };
 
 struct ContainFirst {
-    vector<StateNode*> next[INPUT_SIZE];
+    map< level, vector<StateNode*>* > next;
 };
 
 void* InitiateThread(void* p);
@@ -40,7 +42,6 @@ public:
 
     void execute();
     void thread_work();
-    void openMP_work(int id);
 
     void addZeroRuleOutput(cell_array input);
 

@@ -11,9 +11,8 @@
 #include <omp.h>
 #include <cmath>
 
-#define LOCK(mutex)     pthread_mutex_lock((mutex))
-#define UNLOCK(mutex)   pthread_mutex_unlock((mutex))
-
+#define OUTPUT(file, input, r_class, t_id) \
+(file)->output[(t_id)].push_back(pair<cell_array, cell_value>((input), (r_class)))
 
 using namespace std;
 
@@ -39,33 +38,38 @@ SMSolution::~SMSolution() {
 
 void SMSolution::execute() {
     cell_vector* ruleSet;
-//    ruleSet = fileHandler.readRuleFile("dataset/sm_rules.csv");
-        ruleSet = fileHandler.readRuleFile("dataset/THE_PROBLEM/rules2M.csv");
-//    ruleSet = fileHandler.readRuleFile("dataset/xs_rules.csv");
+    //    ruleSet = fileHandler.readRuleFile("dataset/sm_rules.csv");
+    ruleSet = fileHandler.readRuleFile("dataset/THE_PROBLEM/rules2M.csv");
+    //    ruleSet = fileHandler.readRuleFile("dataset/xs_rules.csv");
 
-    inputSet = fileHandler.readInputFile("dataset/THE_PROBLEM/trans_day_2.csv");
-//        inputSet = fileHandler.readInputFile("dataset/sm_input.csv");
-//    inputSet = fileHandler.readInputFile("dataset/xs_input.csv");
+    fileHandler.start();
+    
+//    inputSet = fileHandler.readInputFile("dataset/THE_PROBLEM/trans_day_1.csv");
+    //        inputSet = fileHandler.readInputFile("dataset/sm_input.csv");
+    //    inputSet = fileHandler.readInputFile("dataset/xs_input.csv");
 
     buildStateMachine(ruleSet);
 
-//    map<cell_value, ContainFirst*>::iterator pit;
-//    vector<StateNode*>* vptr;
-//        for(int i=0; i<INPUT_SIZE; i++) {
-//            for(pit = mappedIndexes[i].begin(); pit != mappedIndexes[i].end(); pit++) {
-//                cout << (*pit).first<< endl;
-//                vector<StateNode*>::iterator it;
-//                for(int j=0; j<INPUT_SIZE; j++) {
-//                    vptr = (*pit).second->next;
-//                    it = vptr[j].begin();
-//                    while(it != vptr[j].end()) {
-//                        printSM(*it, i+1);
-//                        it++;
-//                    }
-//                }
-//            }
-//            cout << endl;
-//        }
+    //    map<cell_value, ContainFirst*>::iterator pit;
+    //    map< level, vector<StateNode*>* >::iterator map_it;
+    //    vector<StateNode*>::iterator itt;
+    //        for(int i=0; i<INPUT_SIZE; i++) {
+    //            for(pit = mappedIndexes[i].begin(); pit != mappedIndexes[i].end(); pit++) {
+    //                
+    //                cout << (*pit).first << endl;
+    //                
+    //                for(map_it=pit->second->next.begin(); map_it!=pit->second->next.end(); map_it++) {
+    //                    itt = map_it->second->begin();
+    //                    while(itt != map_it->second->begin()) {
+    //                        printf("(%d)", map_it->first);
+    //                        printSM(*itt, i+1);
+    //                        itt++;
+    //                    }
+    //                }
+    //                
+    //            }
+    //            cout << endl;
+    //        }
 
     clock_t s = clock();
 
@@ -73,172 +77,180 @@ void SMSolution::execute() {
     cell_vector::iterator input_it;
 
     map< cell_value, ContainFirst* >::iterator mit;
+    map< level, vector<StateNode*>* >::iterator l_it;
 
     vector<StateNode*>::iterator it;
-    pair<vector<StateNode*>::iterator, vector<StateNode*>::iterator> ret;
 
     StateNode cmp;
     StateNode *state;
     ContainFirst *fs;
 
-//    for (int i = 0; i < INPUT_SIZE; i++) {
-//        for (it = startIndex[i].begin(); it < startIndex[i].end(); it++) {
-//            cell_array ca = (*ruleSet)[(*it)->index];
-//            for (int j = 0; j < INPUT_SIZE + 1; j++) {
-//                cout << ca[j] << " ";
-//            }
-//            cout << endl;
-//        }
-//    }
-//    int nbc, nc, nb, ncy, nwcy;
-//    nbc = nc = nb = ncy = nwcy = 0;
+    //    for (int i = 0; i < INPUT_SIZE; i++) {
+    //        for (it = startIndex[i].begin(); it < startIndex[i].end(); it++) {
+    //            cell_array ca = (*ruleSet)[(*it)->index];
+    //            for (int j = 0; j < INPUT_SIZE + 1; j++) {
+    //                cout << ca[j] << " ";
+    //            }
+    //            cout << endl;
+    //        }
+    //    }
+    //    int nbc, nc, nb, ncy, nwcy;
+    //    nbc = nc = nb = ncy = nwcy = 0;
 
+    int fileId=0;
+    LoadedFile* cwf = fileHandler.getNextWorkFile(0);
+    
+    do {
+        inputSet = cwf->workVector;
     for (input_it = inputSet->begin(); input_it < inputSet->end(); input_it++) {
 
         for (int i = 0; i < INPUT_SIZE; i++) {
             cmp.value = (*input_it)[i];
-//            cout << "Looking for: " << cmp.value << endl;
-//            ncy++;
+            //            ncy++;
             mit = mappedIndexes[i].find(cmp.value);
 
-//            nbc++;
+            //            nbc++;
             if (mit != mappedIndexes[i].end()) {
-//                cout << "  match found: " << (*mit).first << endl;
                 fs = (*mit).second;
-                for (int j=i+1; j < INPUT_SIZE; j++) {
 
-                    cmp.value = (*input_it)[j];
-//                    ncy+=2;
+                l_it = fs->next.begin();
 
-                    ret = equal_range(fs->next[j].begin(), fs->next[j].end(), &cmp, compareObj);
+                if (l_it->first == i) {
+                    for (it = l_it->second->begin(); it < l_it->second->end(); it++) {
+                        OUTPUT(cwf, *input_it, (*it)->value, 0);
+                    }
 
-                    for (it = ret.first; it != ret.second; ++it) {
+                    l_it++;
+                }
+
+                while (l_it != fs->next.end()) {
+
+                    cmp.value = (*input_it)[l_it->first];
+                    //                    ncy+=2;
+
+                    it = lower_bound(l_it->second->begin(), l_it->second->end(), &cmp, compareObj);
+                    //ret = equal_range(l_it->second->begin(), l_it->second->end(), &cmp, compareObj);
+
+                    //for (it = ret.first; it != ret.second; ++it) {
+                    for (; it != l_it->second->end() && (*it)->value == cmp.value; it++) {
 
                         state = (*it)->next;
-//                        nbc++;
-//                        cout << "    comparing against: " << state->value << endl;
+                        //                        nbc++;
                         while (true) {
-//                            nwcy++;
+                            //                            nwcy++;
                             if (state->next != NULL) {
                                 if (state->value != (*input_it)[state->index]) {
-//                                    nb++;
+                                    //nb++;
                                     break;
                                 } else {
                                     state = state->next;
                                 }
                             } else {
-//                                nb++;
-                                fileHandler.addOutput(*input_it, state->value);
+                                //                                nb++;
+                                OUTPUT(cwf, *input_it, state->value, 0);
                                 break;
                             }
                         }
                     }
-                }
 
-                it = fs->next[i].begin();
-//                nbc++;
-                while (it < fs->next[i].end() && (*it)->index < 0) {
-//                    nbc++;
-//                    nwcy++;
-                    fileHandler.addOutput(*input_it, (*it)->value);
-                    it++;
+                    l_it++;
                 }
             }
         }
-        
+
         if (hasZeroRule)
-            fileHandler.addOutput(*input_it, zeroClass);
+            OUTPUT(cwf, *input_it, zeroClass, 0);
     }
-//    printf("boolean Comp: %d\nContinues: %d\nBreaks: %d\nBinary searches: %d\nWhile cycles: %d\n", nbc, nc, nb, ncy, nwcy);
-    //                if((state->next != NULL) && (state->value != (*input_it)[state->index])) {
-    //                    continue;
-    //                }
-    //
-    //                while (true) {
-    //                    if (state->next != NULL) {
-    //                        if (state->value != (*input_it)[state->index]) {
-    //                            break;
-    //                        }else {
-    //                            if (state->next->next != NULL) {
-    //                                if (state->next->value != (*input_it)[state->next->index]) {
-    //                                    break;
-    //
-    //                                } else {
-    //                                    state = state->next;
-    //                                    continue;
-    //                                }
-    //                            } else {
-    //                                fileHandler.addOutput((*input_it), state->value);
-    //                                break;
-    //                            }
-    //                        }
-    //                    } else {
-    //                        fileHandler.addOutput((*input_it), state->value);
-    //                        break;
-    //                    }
-    //                }
+        fileId++;
+    
+    cwf->finished();
+    
+    cwf = fileHandler.getNextWorkFile(fileId);
+    } while(cwf != NULL);
+    //printf("boolean Comp: %d\nContinues: %d\nBreaks: %d\nBinary searches: %d\nWhile cycles: %d\n", nbc, nc, nb, ncy, nwcy);
 #endif
 
 #ifdef OPENMP
-        omp_lock_t mutex;
-        omp_init_lock(&mutex);
-        
+    omp_lock_t mutex;
+    omp_init_lock(&mutex);
+
 #pragma omp parallel default(shared) num_threads(NUM_THREADS)
     {
-        int my_id = omp_get_thread_num();
+        int k = 0, my_id = omp_get_thread_num();
         cell_vector::iterator input_it = inputSet->begin() + my_id;
         printf("openMP process %d has begun\n", my_id);
+
+        map< cell_value, ContainFirst* >::iterator mit;
+        map< level, vector<StateNode*>* >::iterator l_it;
+
         vector<StateNode*>::iterator it;
-        pair<vector<StateNode*>::iterator, vector<StateNode*>::iterator> ret;
-        double opmpStart = omp_get_wtime();
 
         StateNode cmp;
         StateNode *state;
-        int total=0, k=0;
-        int workDiv = 1000000 / NUM_THREADS;
+        ContainFirst *fs;
 
         while (input_it < inputSet->end()) {
-//        while (k<workDiv) {
+
             for (int i = 0; i < INPUT_SIZE; i++) {
                 cmp.value = (*input_it)[i];
-                ret = equal_range(startIndex[i].begin(), startIndex[i].end(), &cmp, compareObj);
 
-                for (it = ret.first; it != ret.second; ++it) {
-                    state = (*it)->next;
+                mit = mappedIndexes[i].find(cmp.value);
 
-                    while (true) {
-                        if (state->next != NULL) {
-                            if (state->value != (*input_it)[state->index]) {
-                                break;
-                            } else {
-                                state = state->next;
-                            }
-                        } else {
-                            fileHandler.addOutput((*input_it), state->value, my_id);
-                            break;
+                if (mit != mappedIndexes[i].end()) {
+                    fs = (*mit).second;
+
+                    l_it = fs->next.begin();
+
+                    if (l_it->first == i) {
+                        for (it = l_it->second->begin(); it < l_it->second->end(); it++) {
+                            fileHandler.addOutput(*input_it, (*it)->value, my_id);
                         }
+
+                        l_it++;
+                    }
+
+                    while (l_it != fs->next.end()) {
+
+                        cmp.value = (*input_it)[l_it->first];
+
+                        it = lower_bound(l_it->second->begin(), l_it->second->end(), &cmp, compareObj);
+
+                        for (; it != l_it->second->end() && (*it)->value == cmp.value; it++) {
+
+                            state = (*it)->next;
+
+                            while (true) {
+
+                                if (state->next != NULL) {
+                                    if (state->value != (*input_it)[state->index]) {
+
+                                        break;
+                                    } else {
+                                        state = state->next;
+                                    }
+                                } else {
+
+                                    fileHandler.addOutput(*input_it, state->value, my_id);
+                                    break;
+                                }
+                            }
+                        }
+
+                        l_it++;
                     }
                 }
             }
-//                omp_set_lock(&mutex);
-//                cout << " openMP thread " << my_id << endl;
-//                for(int i=0; i<10; i++) {
-//                    cout << (*input_it)[i] << " ";
-//                }
-//                cout << endl;
-//                omp_unset_lock(&mutex);
+
+            if (hasZeroRule)
+                fileHandler.addOutput(*input_it, zeroClass, my_id);
+
             k++;
             input_it += NUM_THREADS;
         }
 
-        if (hasZeroRule) {
-            for (input_it = inputSet->begin() + my_id; input_it < inputSet->end(); input_it += NUM_THREADS) {
-                fileHandler.addOutput(*input_it, zeroClass, my_id);
-            }
-        }
-        omp_set_lock(&mutex);
-        cout << "my Id: " << my_id << ": " << omp_get_wtime() - opmpStart << endl;
-        omp_unset_lock(&mutex);
+        //    omp_set_lock(&mutex);
+        //    cout << "my Id: " << my_id << ": " << omp_get_wtime() - opmpStart << endl;
+        //    omp_unset_lock(&mutex);
     }
 #endif
 
@@ -279,121 +291,130 @@ void SMSolution::execute() {
 
     cout << "\nExecuting all inputs took: " << (((double) clock() - s) / CLOCKS_PER_SEC) << endl;
 
-    cout << "\nFile Handler memory used: " << fileHandler.getMemoryUsed() / (float) (1048576) << " MB\n";
+//    cout << "\nFile Handler memory used: " << fileHandler.getMemoryUsed() / (float) (1048576) << " MB\n";
 
-    fileHandler.manageOutputOf(inputSet);
+//    fileHandler.manageOutputOf(inputSet);
 
-#ifdef PTHREADS
+
     pthread_exit(NULL);
-#endif
-}
-
-void SMSolution::openMP_work(int id) {
-    int my_id = id;
-    cell_vector::iterator input_it = inputSet->begin() + my_id;
-    printf("openMP process %d has begun\n", my_id);
-    vector<StateNode*>::iterator it;
-    pair<vector<StateNode*>::iterator, vector<StateNode*>::iterator> ret;
-
-    StateNode cmp;
-    StateNode *state;
-
-    while (input_it < inputSet->end()) {
-        for (int i = 0; i < INPUT_SIZE; i++) {
-            cmp.value = (*input_it)[i];
-
-            ret = equal_range(startIndex[i].begin(), startIndex[i].end(), &cmp, compareObj);
-
-            for (it = ret.first; it != ret.second; ++it) {
-                state = (*it)->next;
-
-                while (true) {
-                    if (state->next != NULL) {
-                        if (state->value != (*input_it)[state->index]) {
-                            break;
-                        } else {
-                            state = state->next;
-                        }
-                    } else {
-                        fileHandler.addOutput((*input_it), state->value, my_id);
-                        break;
-                    }
-                }
-            }
-        }
-
-        input_it += NUM_THREADS;
-    }
-
-    if (hasZeroRule) {
-        for (input_it = inputSet->begin() + my_id; input_it < inputSet->end(); input_it += NUM_THREADS) {
-            fileHandler.addOutput(*input_it, zeroClass, my_id);
-        }
-    }
 }
 
 void SMSolution::thread_work() {
+#ifdef PTHREADS
     int my_id;
-    int num_worked = 0;
-    LOCK(&mutex_ID);
+    int num_worked, startIndex, fileId = 0;
+
+    LOCK(mutex_ID);
     my_id = work_ID++;
     cout << "Thread " << my_id << " reporting in" << endl;
-    UNLOCK(&mutex_ID);
+    UNLOCK(mutex_ID);
 
-    cell_vector::iterator input_it = inputSet->begin() + my_id;
+    // Get a work item - Current Work File (CWF)
+    LoadedFile* cwf = fileHandler.getNextWorkFile(fileId);
+    cell_vector::iterator input_it;
+    
+    do {
+    
+    while (true) {
+        
+        LOCK(cwf->mutex);
+        startIndex = cwf->availableWork - 1;
+        cwf->availableWork -= WORK_RANGE;
+        UNLOCK(cwf->mutex);
 
-    vector<StateNode*>::iterator it;
-    pair<vector<StateNode*>::iterator, vector<StateNode*>::iterator> ret;
+        if (startIndex < 0) {
+            break;
+        }
+        
+        num_worked = 0;
+        input_it = cwf->workVector->begin() + startIndex;
 
-    StateNode cmp;
-    StateNode *state;
+        map< cell_value, ContainFirst* >::iterator mit;
+        map< level, vector<StateNode*>* >::iterator l_it;
 
-    clock_t s = clock();
+        vector<StateNode*>::iterator it;
 
-    while (input_it < inputSet->end()) {
-        for (int i = 0; i < INPUT_SIZE; i++) {
-            cmp.value = (*input_it)[i];
+        StateNode cmp;
+        StateNode *state;
+        ContainFirst *fs;
 
-            ret = equal_range(startIndex[i].begin(), startIndex[i].end(), &cmp, compareObj);
+        while (num_worked < WORK_RANGE) {
+            
+            for (int i = 0; i < INPUT_SIZE; i++) {
+                cmp.value = (*input_it)[i];
 
-            for (it = ret.first; it != ret.second; ++it) {
-                state = (*it)->next;
+                mit = mappedIndexes[i].find(cmp.value);
 
-                while (true) {
-                    if (state->next != NULL) {
-                        if (state->value != (*input_it)[state->index]) {
-                            break;
-                        } else {
-                            state = state->next;
+                if (mit != mappedIndexes[i].end()) {
+                    fs = (*mit).second;
+
+                    l_it = fs->next.begin();
+
+                    if (l_it->first == i) {
+                        for (it = l_it->second->begin(); it < l_it->second->end(); it++) {
+                            OUTPUT(cwf, *input_it, (*it)->value, my_id);
                         }
-                    } else {
-                        fileHandler.addOutput((*input_it), state->value, my_id);
-                        break;
+
+                        l_it++;
+                    }
+
+                    while (l_it != fs->next.end()) {
+
+                        cmp.value = (*input_it)[l_it->first];
+
+                        it = lower_bound(l_it->second->begin(), l_it->second->end(), &cmp, compareObj);
+
+                        for (; it != l_it->second->end() && (*it)->value == cmp.value; it++) {
+
+                            state = (*it)->next;
+
+                            while (true) {
+
+                                if (state->next != NULL) {
+                                    if (state->value != (*input_it)[state->index]) {
+
+                                        break;
+                                    } else {
+                                        state = state->next;
+                                    }
+                                } else {
+                                    OUTPUT(cwf, *input_it, state->value, my_id);
+                                    break;
+                                }
+                            }
+                        }
+
+                        l_it++;
                     }
                 }
             }
-        }
 
-        num_worked++;
-        input_it += NUM_THREADS;
-    }
+            if (hasZeroRule)
+                OUTPUT(cwf, *input_it, zeroClass, my_id);
 
-    if (hasZeroRule) {
-        for (input_it = inputSet->begin() + my_id; input_it < inputSet->end(); input_it += NUM_THREADS) {
-            fileHandler.addOutput(*input_it, zeroClass, my_id);
+            num_worked++;
+            input_it--;
         }
     }
-
-    LOCK(&mutex_ID);
-    cout << "Thread " << my_id << " handled " << num_worked << " inputs";
-    cout << "\nAnd took: " << (((double) clock() - s) / CLOCKS_PER_SEC) << endl;
-    UNLOCK(&mutex_ID);
+    
+    fileId++;
+    
+    cwf->finished();
+    
+    cwf = fileHandler.getNextWorkFile(fileId);
+    
+    } while(cwf != NULL);
+    
+    LOCK(mutex_ID);
+    cout << "Thread " << my_id << " handled " << num_worked << " exited\n";
+    UNLOCK(mutex_ID);
 
     pthread_exit((void*) 0);
+#endif
 }
 
 void SMSolution::printSM(StateNode* sm, int d) {
-    
+
     for (int i = 0; i < d; i++) {
         cout << "  ";
     }
@@ -413,49 +434,67 @@ void SMSolution::buildStateMachine(cell_vector* ruleSet) {
 
     clock_t s = clock();
 
-//    int countIdx[INPUT_SIZE];
-//    int sizes, nulls;
-//    sizes = 0, nulls = 0;
-//    countIdx[0] = countIdx[1] = countIdx[2] = countIdx[3] = countIdx[4] = 0;
-//    countIdx[5] = countIdx[6] = countIdx[7] = countIdx[8] = countIdx[9] = 0;
+    //    int countIdx[INPUT_SIZE];
+    //    int sizes, nulls;
+    //    sizes = 0, nulls = 0;
+    //    countIdx[0] = countIdx[1] = countIdx[2] = countIdx[3] = countIdx[4] = 0;
+    //    countIdx[5] = countIdx[6] = countIdx[7] = countIdx[8] = countIdx[9] = 0;
 
     // startIndex[INPUT_SIZE];
     StateNode *ptr;
-//    bool hasIndex[10][10000];
+    //    bool hasIndex[10][10000];
+    map< cell_value, ContainFirst* >::iterator idx_it;
+    //    pair< map< cell_value, ContainFirst* >::iterator, bool> idx_it;
+    map< level, vector<StateNode*>* >::iterator map_it;
+
     short depth;
+
+    ContainFirst *last;
 
     while (rule_it < ruleSet->end()) {
         ptr = NULL;
         depth = 0;
         for (int i = 0; i < INPUT_SIZE; i++) {
             if ((*rule_it)[i] != 0) {
-//                countIdx[i]++;
-//                sizes++;
+                //                countIdx[i]++;
+                //                sizes++;
                 depth++;
                 StateNode *newState = new StateNode;
-//                if(i==9 && (*rule_it)[i] == 5620)
-//                    int b=0;
+                //                if(i==9 && (*rule_it)[i] == 5620)
+                //                    int b=0;
                 newState->index = i;
                 newState->value = (*rule_it)[i];
 
-                if (ptr!=NULL) {
-                    if (depth==2) {
-//                        printf("pushed %d, in vector[%d] of key: %d on index %d\n", newState->value, i, ptr->value, ptr->index);
-                        ((mappedIndexes[ptr->index])[ptr->value])->next[i].push_back(newState);
+                if (ptr != NULL) {
+                    if (depth == 2) {
+                        last = idx_it->second;
+
+                        map_it = last->next.lower_bound(i);
+
+                        if (map_it != last->next.end() && map_it->first == i) {
+                            //                            printf("added in %d value %d\n", i, (*rule_it)[i]);
+                            map_it->second->push_back(newState);
+
+                        } else {
+                            //                            printf("created new level %d with %d\n", i, (*rule_it)[i]);
+                            map_it = last->next.insert(map_it, pair<level, vector<StateNode*>*>(i, new vector<StateNode*>));
+                            map_it->second->push_back(newState);
+                        }
+
+
                         delete ptr;
+
                     } else {
-//                        printf("added %d to the tail of %d\n", newState->value, ptr->value);
+
                         ptr->next = newState;
                     }
                 } else {
-//                    bool fe = hasIndex[i][newState->value];
-//                    if ( !hasIndex[i][newState->value] ) {
-//                        if(i==9 && newState->value == 5620)
-//                            int gj = 0;
-//                        hasIndex[i][newState->value] = 1;
-//                        //printf("inserted %d on index %d\n", newState->value, i);
-                        mappedIndexes[i].insert(pair< cell_value, ContainFirst* >(newState->value, new ContainFirst));
-//                    }
+                    //                    printf("INDEX %d added value %d\n", i, (*rule_it)[i]);
+                    idx_it = mappedIndexes[i].lower_bound(newState->value);
+                    if (idx_it->first != newState->value) {
+                        idx_it = mappedIndexes[i].insert(idx_it, pair< cell_value, ContainFirst* >(newState->value, new ContainFirst));
+                    }
+
                 }
 
                 ptr = newState;
@@ -463,10 +502,7 @@ void SMSolution::buildStateMachine(cell_vector* ruleSet) {
         }
 
         if (ptr != NULL) {
-//            int c[10];
-//            for (int i = 0; i < INPUT_SIZE; i++) {
-//                c[i] = (*rule_it)[i];
-//            }
+
             StateNode *newState = new StateNode;
             newState->index = -1;
             newState->value = (*rule_it)[INPUT_SIZE];
@@ -475,36 +511,46 @@ void SMSolution::buildStateMachine(cell_vector* ruleSet) {
                 newState->next = NULL;
                 ptr->next = newState;
             } else {
-//                map< cell_value, ContainFirst* >::iterator fg = mappedIndexes[ptr->index].find(ptr->value);
-//                int a = (fg == mappedIndexes[ptr->index].end()) ? 0 : 1;
-//                bool t1 = hasIndex[ptr->index][ptr->value];
-                ((mappedIndexes[ptr->index])[ptr->value])->next[ptr->index].push_back(newState);
+                last = ((mappedIndexes[ptr->index])[ptr->value]);
+
+                map_it = last->next.lower_bound(ptr->index);
+
+                if (map_it->first == ptr->value) {
+                    //                    printf("++added in %d value %d\n", ptr->index, (*rule_it)[INPUT_SIZE]);
+                    map_it->second->push_back(newState);
+
+                } else {
+                    //                    printf("++created new level %d with %d\n", ptr->index, (*rule_it)[INPUT_SIZE]);
+                    map_it = last->next.insert(map_it, pair<level, vector<StateNode*>*>(ptr->index, new vector<StateNode*>));
+                    map_it->second->push_back(newState);
+                }
             }
         } else {
             hasZeroRule = true;
             zeroClass = (*rule_it)[INPUT_SIZE];
         }
-        
+
         rule_it++;
     }
 
-//    for (int i = 0; i < INPUT_SIZE; i++)
-//        cout << countIdx[i] << " ";
-//
-//    cout << endl << " average size of rules: " << sizes / (float) 2000000 << endl;
-//    cout << endl << " number of empty rules: " << nulls << endl;
+    //    for (int i = 0; i < INPUT_SIZE; i++)
+    //        cout << countIdx[i] << " ";
+    //
+    //    cout << endl << " average size of rules: " << sizes / (float) 2000000 << endl;
+    //    cout << endl << " number of empty rules: " << nulls << endl;
 
     map<cell_value, ContainFirst*>::iterator pit;
 
     for (int i = 0; i < INPUT_SIZE; i++) {
-        for(pit = mappedIndexes[i].begin(); pit != mappedIndexes[i].end(); pit++) {
-            for(int j=0; j<INPUT_SIZE; j++) {
-                sort((*pit).second->next[j].begin(), (*pit).second->next[j].end(), compareObj);
-                j++;
-                sort((*pit).second->next[j].begin(), (*pit).second->next[j].end(), compareObj);
+        for (pit = mappedIndexes[i].begin(); pit != mappedIndexes[i].end(); pit++) {
+            for (map_it = pit->second->next.begin(); map_it != pit->second->next.end(); map_it++) {
+                sort(map_it->second->begin(), map_it->second->end(), compareObj);
             }
         }
     }
+
+    // Release space reserved by file handler for rules
+    fileHandler.freeRuleSpace();
 
     cout << "\nState machine build took: " << (((double) clock() - s) / CLOCKS_PER_SEC) << endl;
 }
